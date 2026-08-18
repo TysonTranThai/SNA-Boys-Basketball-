@@ -1,7 +1,17 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+
+/** Reject non-HTTPS Supabase URLs — all Supabase projects serve over HTTPS. */
+const url = (() => {
+  if (!rawUrl) return rawUrl
+  if (/^https:\/\//i.test(rawUrl)) return rawUrl
+  console.error(
+    `[supabase] VITE_SUPABASE_URL must use HTTPS — got: ${rawUrl}`,
+  )
+  return undefined
+})()
 
 /** True when the app is running without a configured Supabase project. */
 export const isSupabaseConfigured = Boolean(url && anonKey)
