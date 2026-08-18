@@ -1,0 +1,32 @@
+# dependencies
+node_modules
+
+# build output
+dist
+dist-ssr
+dist-preview
+
+# env files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# typescript incremental builds
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# supabase local runtime
+supabase/.temp
+
+# freebuff local tooling
+.freebuff/
+.planning/

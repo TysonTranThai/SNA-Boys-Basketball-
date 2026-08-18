@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* SNA brand defaults — the team row overrides these at runtime. */
+    --team-primary: #c8102e;
+    --team-primary-hover: #a50d25;
+    --team-primary-active: #8c0b20;
+    --team-primary-soft: #fbe3e8;
+    --team-secondary: #f2a900;
+    --team-accent: #d4af37;
+    --team-contrast: #ffffff;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased dark:bg-[#0b1220] dark:text-slate-100;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--team-primary) 25%, transparent);
+  }
+
+  .sna-accent {
+    background: linear-gradient(135deg, var(--team-primary), var(--team-secondary));
+  }
+
+  .text-sna-gold {
+    color: var(--team-accent);
+  }
+
+  /* Subtle scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.4) transparent;
+  }
+}
+
+@layer components {
+  /* Team accent helpers driven by CSS variables set from the team row */
+  .bg-team {
+    background-color: var(--team-primary);
+  }
+  .bg-team-hover:hover {
+    background-color: var(--team-primary-hover);
+  }
+  .bg-team-active:active {
+    background-color: var(--team-primary-active);
+  }
+  .bg-team-soft {
+    background-color: var(--team-primary-soft);
+  }
+  .text-team {
+    color: var(--team-primary);
+  }
+  .border-team {
+    border-color: var(--team-primary);
+  }
+  .text-team-contrast {
+    color: var(--team-contrast);
+  }
+  .focus-ring-team:focus-visible {
+    outline: 2px solid var(--team-primary);
+    outline-offset: 2px;
+  }
+
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[var(--team-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--team-primary)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
