@@ -25,7 +25,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Avatar } from '@/components/ui/Avatar'
 import { setSnaTitle } from '@/lib/brand'
-import { ATTENDANCE_META, cn } from '@/lib/utils'
+import { ATTENDANCE_META, cn, jerseyTakenBy } from '@/lib/utils'
 import type { Profile, Role } from '@/types'
 
 const POSITIONS = ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center', 'Guard', 'Forward', 'Other']
@@ -253,6 +253,7 @@ export default function PlayersManagementPage() {
       {(addOpen || editing) && (
         <PlayerFormModal
           teamId={team?.id ?? ''}
+          players={data.players}
           player={editing}
           onClose={() => {
             setAddOpen(false)
@@ -334,11 +335,13 @@ export default function PlayersManagementPage() {
 
 function PlayerFormModal({
   teamId,
+  players,
   player,
   onClose,
   onSubmit,
 }: {
   teamId: string
+  players: Profile[]
   player: Profile | null
   onClose: () => void
   onSubmit: (patch: Partial<Profile>, role?: Role) => Promise<void>
@@ -368,8 +371,19 @@ function PlayerFormModal({
       height_cm: height ? Number(height) : null,
       email: email.trim() || null,
     }
-    const num = Number(jersey)
-    if (jersey && !Number.isNaN(num)) patch.jersey_number = num
+    if (jersey) {
+      const num = Number(jersey)
+      if (Number.isNaN(num)) {
+        setError('Enter a valid jersey number (0–999).')
+        return
+      }
+      const owner = jerseyTakenBy(players, num, player?.id)
+      if (owner) {
+        setError(`#${num} is already taken by ${owner} — pick a different number.`)
+        return
+      }
+      patch.jersey_number = num
+    }
     setSaving(true)
     try {
       await onSubmit(patch, role !== (player?.role ?? 'player') ? role : undefined)

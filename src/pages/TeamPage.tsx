@@ -17,7 +17,7 @@ import { useTeamData } from '@/hooks/useTeamData'
 import { useToast } from '@/hooks/useToast'
 import { addPlayer, deletePlayer, setPlayerActive, setPlayerRole, updatePlayer } from '@/lib/api'
 import { PhotoUpload } from '@/components/ui/PhotoUpload'
-import { percent } from '@/lib/utils'
+import { percent, jerseyTakenBy } from '@/lib/utils'
 import type { PlayerWithStats, Role } from '@/types'
 
 interface PlayerForm {
@@ -53,7 +53,7 @@ export default function TeamPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<PlayerWithStats | null>(null)
   const [form, setForm] = useState<PlayerForm>(EMPTY_FORM)
-  const [formErrors, setFormErrors] = useState<{ full_name?: string }>({})
+  const [formErrors, setFormErrors] = useState<{ full_name?: string; jersey_number?: string }>({})
   const [saving, setSaving] = useState(false)
   const [deactivateTarget, setDeactivateTarget] = useState<PlayerWithStats | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<PlayerWithStats | null>(null)
@@ -100,6 +100,18 @@ export default function TeamPage() {
     if (form.full_name.trim().length < 2) {
       setFormErrors({ full_name: 'Enter the player’s name.' })
       return
+    }
+    if (form.jersey_number) {
+      const jerseyNum = Number(form.jersey_number)
+      if (Number.isNaN(jerseyNum)) {
+        setFormErrors({ jersey_number: 'Enter a valid number (0–999).' })
+        return
+      }
+      const owner = jerseyTakenBy(data.players, jerseyNum, editing?.id)
+      if (owner) {
+        setFormErrors({ jersey_number: `#${jerseyNum} is already taken by ${owner} — pick a different number.` })
+        return
+      }
     }
     setSaving(true)
     try {
@@ -346,7 +358,7 @@ export default function TeamPage() {
           <Field label="Full name" required error={formErrors.full_name} className="sm:col-span-2">
             <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Alex Nguyen" />
           </Field>
-          <Field label="Jersey number">
+          <Field label="Jersey number" error={formErrors.jersey_number}>
             <Input type="number" min={0} max={999} value={form.jersey_number} onChange={(e) => setForm({ ...form, jersey_number: e.target.value })} placeholder="23" />
           </Field>
           <Field label="Position">

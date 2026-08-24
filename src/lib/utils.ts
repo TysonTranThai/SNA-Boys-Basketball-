@@ -117,6 +117,20 @@ export function percent(part: number, total: number): number {
   return Math.round((part / total) * 100)
 }
 
+/**
+ * Name of the roster entry already wearing a jersey number, or null if free.
+ * Pass the profile's id as excludeId when editing so a player keeps their own
+ * number. Mirrors the DB unique index on (team_id, jersey_number).
+ */
+export function jerseyTakenBy(
+  players: { id?: string; jersey_number: number | null; full_name?: string }[],
+  jersey: number,
+  excludeId?: string,
+): string | null {
+  const owner = players.find((p) => p.id !== excludeId && p.jersey_number === jersey)
+  return owner?.full_name ?? null
+}
+
 /* --------------------------- attendance meta --------------------------- */
 
 export const ATTENDANCE_META: Record<
