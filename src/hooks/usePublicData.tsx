@@ -55,40 +55,47 @@ export function PublicDataProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     setLoading(true)
     setError(null)
-    ;(async () => {
+
+    const errors: string[] = []
+    const safe = async <T,>(fn: () => Promise<T>, label: string, fallback: T): Promise<T> => {
       try {
-        const t = await fetchPublicTeam()
-        if (cancelled) return
-        setTeam(t)
-        if (t) {
-          const [g, e, m, r, s, a] = await Promise.all([
-            fetchPublicGames(t.id),
-            fetchPublicEvents(t.id),
-            fetchPublicMedia(t.id),
-            fetchPublicRoster(t.id),
-            fetchPublicPlayerStats(t.id),
-            fetchPublicAttendanceSummary(t.id),
-          ])
-          if (cancelled) return
-          setGames(g)
-          setEvents(e)
-          setMedia(m)
-          setRoster(r)
-          setPlayerStats(s)
-          setAttendance(a)
-        } else {
-          setGames([])
-          setEvents([])
-          setMedia([])
-          setRoster([])
-          setPlayerStats([])
-          setAttendance([])
-        }
+        return await fn()
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Couldn’t load the public site.')
-      } finally {
-        if (!cancelled) setLoading(false)
+        const msg = err instanceof Error ? err.message : 'Failed'
+        errors.push(`${label}: ${msg}`)
+        return fallback
       }
+    }
+
+    ;(async () => {
+      const t = await safe(() => fetchPublicTeam(), 'team', null)
+      if (cancelled) return
+      setTeam(t)
+      if (t) {
+        const [g, e, m, r, s, a] = await Promise.all([
+          safe(() => fetchPublicGames(t.id), 'games', [] as Game[]),
+          safe(() => fetchPublicEvents(t.id), 'events', [] as TeamEvent[]),
+          safe(() => fetchPublicMedia(t.id), 'media', [] as MediaItem[]),
+          safe(() => fetchPublicRoster(t.id), 'roster', [] as Profile[]),
+          safe(() => fetchPublicPlayerStats(t.id), 'stats', [] as PlayerStat[]),
+          safe(() => fetchPublicAttendanceSummary(t.id), 'attendance', [] as PublicAttendanceSummary[]),
+        ])
+        if (cancelled) return
+        setGames(g)
+        setEvents(e)
+        setMedia(m)
+        setRoster(r)
+        setPlayerStats(s)
+        setAttendance(a)
+      } else {
+        setGames([])
+        setEvents([])
+        setMedia([])
+        setRoster([])
+        setPlayerStats([])
+        setAttendance([])
+      }
+      if (errors.length > 0) setError(errors.join('\n'))
     })()
     return () => {
       cancelled = true

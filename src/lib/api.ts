@@ -292,13 +292,25 @@ export async function deleteEvent(id: string) {
 
 export async function fetchGames(teamId: string): Promise<Game[]> {
   // Include the eligible-player roster (game_players junction) so game cards
-  // can show who is allowed to play.
+  // can show who is allowed to play. If the junction table isn't reachable
+  // yet (missing RLS or migration not applied), fall back to plain games so
+  // the rest of the portal keeps working.
   const { data, error } = await supabase
     .from('games')
     .select('*, game_players(player_id)')
     .eq('team_id', teamId)
     .order('date')
-  if (error) throw friendlyError(error, 'Couldn’t load games.')
+  if (error) {
+    // PGRST200 = relationship not found; 42P01 = table missing; permission
+    // errors mean the join's RLS isn't set up. In any case, try without it.
+    const { data: plain, error: plainErr } = await supabase
+      .from('games')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('date')
+    if (plainErr) throw friendlyError(plainErr, 'Couldn’t load games.')
+    return (plain ?? []).map((g) => ({ ...g, eligible_player_ids: [] }))
+  }
   return (data ?? []).map((g) => ({
     ...g,
     eligible_player_ids: (g.game_players ?? []).map((r: { player_id: string }) => r.player_id),

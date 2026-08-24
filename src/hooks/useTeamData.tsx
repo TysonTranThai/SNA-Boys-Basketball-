@@ -79,23 +79,42 @@ export function TeamDataProvider({ children }: { children: ReactNode }) {
     if (!team) return
     let cancelled = false
     setLoading(true)
-    setError(null)
-    Promise.all([
-      fetchRoster(team.id),
-      fetchAttendance(team.id),
-      fetchEvents(team.id),
-      fetchGames(team.id),
-      fetchMedia(team.id),
-      fetchAnnouncements(team.id),
-    ])
-      .then(([r, a, e, g, m, an]) => {
+
+    const queries = [
+      { key: 'players' as const, fn: () => fetchRoster(team.id) },
+      { key: 'attendance' as const, fn: () => fetchAttendance(team.id) },
+      { key: 'events' as const, fn: () => fetchEvents(team.id) },
+      { key: 'games' as const, fn: () => fetchGames(team.id) },
+      { key: 'media' as const, fn: () => fetchMedia(team.id) },
+      { key: 'announcements' as const, fn: () => fetchAnnouncements(team.id) },
+    ]
+
+    const errors: string[] = []
+    const runQuery = async (fn: () => Promise<unknown>, label: string): Promise<unknown> => {
+      try {
+        return await fn()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed'
+        // Keep the portal alive — surface all errors at once so the
+        // captain sees what's wrong instead of a blank screen.
+        errors.push(`${label}: ${msg}`)
+        return []
+      }
+    }
+
+    Promise.all(
+      queries.map((q) => runQuery(q.fn, q.key)),
+    )
+      .then((results) => {
         if (cancelled) return
-        setPlayers(r)
-        setAttendance(a)
-        setEvents(e)
-        setGames((g ?? []).map((game) => ({ ...game, eligible_player_ids: game.eligible_player_ids ?? [] })))
-        setMedia(m)
-        setAnnouncements(an)
+        setPlayers(results[0] as Profile[])
+        setAttendance(results[1] as AttendanceRecord[])
+        setEvents(results[2] as TeamEvent[])
+        setGames((results[3] as Game[] ?? []).map((game) => ({ ...game, eligible_player_ids: game.eligible_player_ids ?? [] })))
+        setMedia(results[4] as MediaItem[])
+        setAnnouncements(results[5] as Announcement[])
+        if (errors.length > 0) setError(errors.join('\n'))
+        else setError(null)
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Couldn’t load team data.')
