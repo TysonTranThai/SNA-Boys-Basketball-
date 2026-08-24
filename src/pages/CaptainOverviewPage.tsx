@@ -53,9 +53,9 @@ export default function CaptainOverviewPage() {
   const activePlayers = data.players.filter((p) => p.is_active).length
 
   const record = useMemo(() => {
-    const wins = data.games.filter((g) => g.result === 'win').length
-    const losses = data.games.filter((g) => g.result === 'loss').length
-    const ties = data.games.filter((g) => g.result === 'tie').length
+    const wins = data.games.filter((g) => g.result === 'win' && !g.is_friendly).length
+    const losses = data.games.filter((g) => g.result === 'loss' && !g.is_friendly).length
+    const ties = data.games.filter((g) => g.result === 'tie' && !g.is_friendly).length
     return { wins, losses, ties }
   }, [data.games])
 

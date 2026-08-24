@@ -238,6 +238,7 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col items-center gap-1 text-center">
                 <p className="text-2xl font-black">{nextGame.opponent}</p>
+                {nextGame.is_friendly && <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">Friendly</span>}
                 <p className="text-sm text-slate-500 dark:text-slate-400">{nextGame.time ? formatTime(nextGame.time) : 'Time TBA'}</p>
                 {nextGame.location && (
                   <p className="flex items-center gap-1 text-sm text-slate-400">
@@ -268,9 +269,12 @@ export default function HomePage() {
               {completed.slice(0, 3).map((g) => (
                 <div key={g.id} className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
                   <div className="flex items-center justify-between">
-                    <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-wide', g.result === 'win' ? 'bg-emerald-500/10 text-emerald-600' : g.result === 'loss' ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-500/10 text-slate-500')}>
-                      {g.result === 'win' ? 'Win 🏆' : g.result === 'loss' ? 'Loss' : 'Tie'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-wide', g.result === 'win' ? 'bg-emerald-500/10 text-emerald-600' : g.result === 'loss' ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-500/10 text-slate-500')}>
+                        {g.result === 'win' ? 'Win 🏆' : g.result === 'loss' ? 'Loss' : 'Tie'}
+                      </span>
+                      {g.is_friendly && <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600">Friendly</span>}
+                    </div>
                     <span className="text-xs text-slate-400">{shortDayLabel(g.date)}</span>
                   </div>
                   <div className="mt-4 space-y-2 text-sm">

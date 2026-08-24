@@ -33,9 +33,9 @@ export default function ReportsPage() {
   const excused = data.attendance.filter((a) => a.status === 'excused').length
 
   const record = useMemo(() => {
-    const wins = data.games.filter((g) => g.result === 'win').length
-    const losses = data.games.filter((g) => g.result === 'loss').length
-    const ties = data.games.filter((g) => g.result === 'tie').length
+    const wins = data.games.filter((g) => g.result === 'win' && !g.is_friendly).length
+    const losses = data.games.filter((g) => g.result === 'loss' && !g.is_friendly).length
+    const ties = data.games.filter((g) => g.result === 'tie' && !g.is_friendly).length
     const decided = wins + losses
     return { wins, losses, ties, winRate: decided > 0 ? percent(wins, decided) : 0 }
   }, [data.games])

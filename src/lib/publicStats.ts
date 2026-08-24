@@ -10,7 +10,7 @@ export interface SeasonRecord {
 }
 
 export function seasonRecord(games: Game[]): SeasonRecord {
-  const completed = games.filter((g) => g.status === 'completed')
+  const completed = games.filter((g) => g.status === 'completed' && !g.is_friendly)
   const wins = completed.filter((g) => g.result === 'win').length
   const losses = completed.filter((g) => g.result === 'loss').length
   const ties = completed.filter((g) => g.result === 'tie').length

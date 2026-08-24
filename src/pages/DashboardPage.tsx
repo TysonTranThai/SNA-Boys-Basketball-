@@ -109,7 +109,7 @@ export default function DashboardPage() {
           {next ? (
             <>
               <p className="mt-2 text-lg font-bold text-slate-900 dark:text-white">
-                {ev ? `${EVENT_TYPE_META[ev.type].icon} ${ev.title}` : `VS ${game?.opponent}`}
+                {ev ? `${EVENT_TYPE_META[ev.type].icon} ${ev.title}` : <>{game?.is_friendly && <span className="mr-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-bold uppercase text-amber-600">Friendly</span>}VS {game?.opponent}</>}
               </p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {dayLabel(next.date)}{ev ? (ev.start_time ? ` · ${formatTime(ev.start_time)}` : '') : game?.time ? ` · ${formatTime(game.time)}` : ''}</span>
