@@ -96,6 +96,7 @@ export function PublicDataProvider({ children }: { children: ReactNode }) {
         setAttendance([])
       }
       if (errors.length > 0) setError(errors.join('\n'))
+      setLoading(false)
     })()
     return () => {
       cancelled = true
