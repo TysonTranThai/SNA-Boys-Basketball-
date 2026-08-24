@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Field, Input } from '@/components/ui/Input'
 import { Avatar } from '@/components/ui/Avatar'
+import { PhotoUpload } from '@/components/ui/PhotoUpload'
 import { useTeam } from '@/hooks/useTeam'
 import { useTeamData } from '@/hooks/useTeamData'
 import { useToast } from '@/hooks/useToast'
@@ -87,8 +88,13 @@ export default function ProfilePage() {
               <Field label="Full name" required>
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </Field>
-              <Field label="Profile photo URL">
-                <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…/photo.jpg" />
+              <Field label="Profile photo">
+                <PhotoUpload
+                  name={fullName.trim() || 'Player'}
+                  value={photoUrl || null}
+                  onChange={(url) => setPhotoUrl(url ?? '')}
+                  teamId={profile?.team_id ?? ''}
+                />
               </Field>
               <Field label="Phone" hint="Optional — shown on your roster profile.">
                 <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" />

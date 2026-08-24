@@ -15,6 +15,7 @@ import { useTeam } from '@/hooks/useTeam'
 import { useTeamData } from '@/hooks/useTeamData'
 import { useToast } from '@/hooks/useToast'
 import { addPlayer, deletePlayer, setPlayerActive, setPlayerRole, updatePlayer } from '@/lib/api'
+import { PhotoUpload } from '@/components/ui/PhotoUpload'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -251,6 +252,7 @@ export default function PlayersManagementPage() {
       {/* Add / Edit modal */}
       {(addOpen || editing) && (
         <PlayerFormModal
+          teamId={team?.id ?? ''}
           player={editing}
           onClose={() => {
             setAddOpen(false)
@@ -331,10 +333,12 @@ export default function PlayersManagementPage() {
 }
 
 function PlayerFormModal({
+  teamId,
   player,
   onClose,
   onSubmit,
 }: {
+  teamId: string
   player: Profile | null
   onClose: () => void
   onSubmit: (patch: Partial<Profile>, role?: Role) => Promise<void>
@@ -423,8 +427,8 @@ function PlayerFormModal({
             <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="183" inputMode="numeric" />
           </Field>
         </div>
-        <Field label="Photo URL" hint="Optional — paste a link to their photo.">
-          <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…/photo.jpg" />
+        <Field label="Profile photo">
+          <PhotoUpload name={fullName.trim() || 'Player'} value={photoUrl || null} onChange={(url) => setPhotoUrl(url ?? '')} teamId={teamId} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Email" hint="Optional contact email shown on their roster profile.">

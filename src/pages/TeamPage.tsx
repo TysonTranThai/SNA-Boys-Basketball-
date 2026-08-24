@@ -16,6 +16,7 @@ import { useTeam } from '@/hooks/useTeam'
 import { useTeamData } from '@/hooks/useTeamData'
 import { useToast } from '@/hooks/useToast'
 import { addPlayer, deletePlayer, setPlayerActive, setPlayerRole, updatePlayer } from '@/lib/api'
+import { PhotoUpload } from '@/components/ui/PhotoUpload'
 import { percent } from '@/lib/utils'
 import type { PlayerWithStats, Role } from '@/types'
 
@@ -360,8 +361,13 @@ export default function TeamPage() {
           <Field label="Email" hint="Optional contact email shown on their roster profile." className="sm:col-span-2">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="player@school.edu" />
           </Field>
-          <Field label="Profile photo URL" className="sm:col-span-2">
-            <Input value={form.photo_url} onChange={(e) => setForm({ ...form, photo_url: e.target.value })} placeholder="https://…/photo.jpg" />
+          <Field label="Profile photo" className="sm:col-span-2">
+            <PhotoUpload
+              name={form.full_name.trim() || 'Player'}
+              value={form.photo_url || null}
+              onChange={(url) => setForm({ ...form, photo_url: url ?? '' })}
+              teamId={team?.id ?? ''}
+            />
           </Field>
           <Field label="Role" hint="Member plays on the team; Coach is staff-only access. Captain is managed from the team roster." className="sm:col-span-2">
             <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>
