@@ -16,7 +16,7 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
     <div className="card group flex items-start gap-4 p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-team-soft text-[var(--team-primary)]">
         <span className="text-lg leading-none">{meta.icon}</span>
-        <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide">{event.type === 'practice' ? 'Practice' : event.type === 'tournament' ? 'Tourn.' : 'Event'}</span>
+        <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide">{event.type === 'practice' ? 'Practice' : event.type === 'tournament' ? 'Tourn.' : event.type === 'friendly' ? 'Friendly' : 'Event'}</span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">

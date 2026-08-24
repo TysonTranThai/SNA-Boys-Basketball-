@@ -21,6 +21,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'practice', label: '🏀 Practice' },
   { value: 'tournament', label: '🏆 Tournaments' },
+  { value: 'friendly', label: '🏅 Friendly Games' },
   { value: 'team_event', label: '🤝 Team Events' },
   { value: 'other', label: '📌 Other' },
 ]
@@ -254,6 +255,7 @@ export default function SchedulePage() {
             <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as EventType })}>
               <option value="practice">🏀 Practice</option>
               <option value="tournament">🏆 Tournament</option>
+              <option value="friendly">🏅 Friendly Game</option>
               <option value="team_event">🤝 Team Event</option>
               <option value="other">📌 Other</option>
             </Select>

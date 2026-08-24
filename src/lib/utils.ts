@@ -188,6 +188,7 @@ export const GAME_RESULT_META: Record<GameResult, { label: string; badge: string
 export const EVENT_TYPE_META: Record<EventType, { label: string; icon: string }> = {
   practice: { label: 'Practice', icon: '🏀' },
   tournament: { label: 'Tournament', icon: '🏆' },
+  friendly: { label: 'Friendly Game', icon: '🏅' },
   team_event: { label: 'Team Event', icon: '🤝' },
   other: { label: 'Event', icon: '📌' },
 }

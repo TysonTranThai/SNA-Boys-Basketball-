@@ -314,7 +314,7 @@ export default function HomePage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                    {e.type === 'practice' ? '🏃' : e.type === 'tournament' ? '🏆' : '📌'} {e.title}
+                    {e.type === 'practice' ? '🏃' : e.type === 'tournament' ? '🏆' : e.type === 'friendly' ? '🏅' : '📌'} {e.title}
                   </p>
                   <p className="truncate text-xs text-slate-400">
                     {e.start_time ? formatTime(e.start_time) : '—'}

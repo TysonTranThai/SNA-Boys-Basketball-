@@ -1,5 +1,5 @@
 export type Role = 'captain' | 'player' | 'coach'
-export type EventType = 'practice' | 'tournament' | 'team_event' | 'other'
+export type EventType = 'practice' | 'tournament' | 'friendly' | 'team_event' | 'other'
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused' | 'sent_home'
 export type GameStatus = 'upcoming' | 'completed' | 'cancelled' | 'postponed'
 export type HomeAway = 'home' | 'away' | 'neutral'
