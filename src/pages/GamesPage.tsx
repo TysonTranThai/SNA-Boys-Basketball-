@@ -14,6 +14,7 @@ import { useTeamData } from '@/hooks/useTeamData'
 import { useToast } from '@/hooks/useToast'
 import { deleteGame, fetchPlayerStatsForGame, savePlayerStatsForGame, setGamePlayers, upsertGame } from '@/lib/api'
 import { cn, percent } from '@/lib/utils'
+import { Toggle } from '@/components/ui/Toggle'
 import { statCategories, statLabel } from '@/lib/publicStats'
 import type { Game, GameResult, GameStatus, HomeAway } from '@/types'
 
@@ -21,6 +22,7 @@ type Filter = 'upcoming' | 'completed' | 'all'
 
 interface GameForm {
   opponent: string
+  is_friendly: boolean
   date: string
   time: string
   location: string
@@ -34,6 +36,7 @@ interface GameForm {
 
 const EMPTY_FORM: GameForm = {
   opponent: '',
+  is_friendly: false,
   date: new Date().toISOString().slice(0, 10),
   time: '19:00',
   location: '',
@@ -65,7 +68,8 @@ export default function GamesPage() {
   const [statsSaving, setStatsSaving] = useState(false)
 
   const record = useMemo(() => {
-    const completed = data.games.filter((g) => g.status === 'completed')
+    // Friendly (exhibition) games never count toward the official record.
+    const completed = data.games.filter((g) => g.status === 'completed' && !g.is_friendly)
     const wins = completed.filter((g) => g.result === 'win').length
     const losses = completed.filter((g) => g.result === 'loss').length
     const ties = completed.filter((g) => g.result === 'tie').length
@@ -90,6 +94,7 @@ export default function GamesPage() {
     setEditing(g)
     setForm({
       opponent: g.opponent,
+      is_friendly: g.is_friendly,
       date: g.date,
       time: g.time?.slice(0, 5) ?? '',
       location: g.location ?? '',
@@ -134,6 +139,7 @@ export default function GamesPage() {
       const result: GameResult | null = completed ? (form.result || (our! > opp! ? 'win' : our! < opp! ? 'loss' : 'tie')) : null
       const payload = {
         opponent: form.opponent.trim(),
+        is_friendly: form.is_friendly,
         date: form.date,
         time: form.time || null,
         location: form.location.trim() || null,
@@ -342,6 +348,12 @@ export default function GamesPage() {
               <option value="cancelled">Cancelled</option>
               <option value="postponed">Postponed</option>
             </Select>
+          </Field>
+          <Field label="Friendly game" hint="Exhibition match — shows on the schedule but won’t count toward the season record.">
+            <div className="flex h-10 items-center gap-3">
+              <Toggle checked={form.is_friendly} onChange={(v) => setForm({ ...form, is_friendly: v })} label="Friendly game" />
+              <span className="text-sm text-slate-600 dark:text-slate-300">{form.is_friendly ? 'Yes — friendly' : 'No — competitive'}</span>
+            </div>
           </Field>
           <Field label="Result" hint="Auto-set from scores if left blank">
             <Select value={form.result} onChange={(e) => setForm({ ...form, result: e.target.value as GameResult | '' })}>

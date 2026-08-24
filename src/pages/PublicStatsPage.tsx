@@ -128,7 +128,7 @@ export default function PublicStatsPage() {
               <div key={g.id} className={cn('flex items-center justify-between gap-4 px-5 py-4', i > 0 && 'border-t border-slate-100 dark:border-slate-800')}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{team?.name ?? 'SNA Boys'} vs {g.opponent}</p>
-                  <p className="text-xs text-slate-400">{g.date} · {g.home_away === 'away' ? 'Away' : 'Home'}</p>
+                  <p className="text-xs text-slate-400">{g.date} · {g.home_away === 'away' ? 'Away' : 'Home'}{g.is_friendly && ' · Friendly'}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="tabular text-base font-black text-slate-900 dark:text-white">{g.our_score ?? '—'}</span>

@@ -79,6 +79,7 @@ export interface AttendanceRecord {
 export interface Game {
   id: string
   team_id: string
+  is_friendly: boolean
   opponent: string
   date: string
   time: string | null

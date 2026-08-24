@@ -30,6 +30,7 @@ export function GameCard({ game, onEdit, onDelete, onStats }: GameCardProps) {
         )}
       >
         <span>
+          {game.is_friendly ? 'FRIENDLY · ' : ''}
           {game.status === 'completed' ? (resultMeta ? `${resultMeta.label.toUpperCase()}${game.result === 'win' ? ' 🏆' : ''}` : 'FINAL') : game.status === 'cancelled' ? 'CANCELLED' : game.status === 'postponed' ? 'POSTPONED' : 'UPCOMING'}
         </span>
         <span className="capitalize">{game.home_away}</span>

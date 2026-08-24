@@ -74,6 +74,7 @@ export default function PublicGamesPage() {
                 </div>
                 <div className="flex flex-col items-center gap-1 text-center">
                   <p className="text-2xl font-black">{g.opponent}</p>
+                  {g.is_friendly && <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">Friendly</span>}
                   <p className="text-sm text-slate-500 dark:text-slate-400">{g.time ? formatTime(g.time) : 'Time TBA'}</p>
                   {g.location && <p className="text-sm text-slate-400">{g.location}</p>}
                 </div>
@@ -92,7 +93,7 @@ export default function PublicGamesPage() {
               <div key={g.id} className={cn('flex flex-wrap items-center justify-between gap-4 px-5 py-4', i > 0 && 'border-t border-slate-100 dark:border-slate-800')}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{team?.name ?? 'SNA Boys'} vs {g.opponent}</p>
-                  <p className="text-xs text-slate-400">{shortDayLabel(g.date)} · {g.home_away === 'away' ? 'Away' : g.home_away === 'neutral' ? 'Neutral' : 'Home'}</p>
+                  <p className="text-xs text-slate-400">{shortDayLabel(g.date)} · {g.home_away === 'away' ? 'Away' : g.home_away === 'neutral' ? 'Neutral' : 'Home'}{g.is_friendly && ' · Friendly'}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="tabular text-lg font-black text-slate-900 dark:text-white">{g.our_score ?? '—'}</span>
