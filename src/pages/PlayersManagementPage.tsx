@@ -185,6 +185,7 @@ export default function PlayersManagementPage() {
                 <tr>
                   <SortHeader label="#" k="jersey_number" className="w-14" />
                   <SortHeader label="Player" k="full_name" />
+                  <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 sm:table-cell">Grade</th>
                   <SortHeader label="Position" k="position" className="hidden sm:table-cell" />
                   <SortHeader label="Attendance" k="attendanceRate" className="hidden md:table-cell" />
                   <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 lg:table-cell">Status</th>
@@ -202,10 +203,11 @@ export default function PlayersManagementPage() {
                         <Avatar name={p.full_name} src={p.photo_url} size="sm" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{p.full_name}</p>
-                          <p className="text-xs text-slate-400 sm:hidden">{p.position ?? 'No position'}</p>
+                          <p className="text-xs text-slate-400 sm:hidden">{[p.position, p.grade && `Grade ${p.grade}`].filter(Boolean).join(' · ') || 'No position or grade'}</p>
                         </div>
                       </div>
                     </td>
+                    <td className="hidden px-4 py-3 text-sm text-slate-600 dark:text-slate-300 sm:table-cell">{p.grade ? `Grade ${p.grade}` : '—'}</td>
                     <td className="hidden px-4 py-3 text-sm text-slate-600 dark:text-slate-300 sm:table-cell">{p.position ?? '—'}</td>
                     <td className="hidden px-4 py-3 md:table-cell">
                       <span className="tabular text-sm font-semibold text-slate-700 dark:text-slate-200">{p.attendanceRate}%</span>

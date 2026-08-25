@@ -370,7 +370,7 @@ export default function HomePage() {
                     {p.jersey_number != null && <span className="text-[var(--team-primary)]">#{p.jersey_number} </span>}
                     {p.full_name}
                   </p>
-                  <p className="truncate text-xs text-slate-400">{p.position ?? '—'}</p>
+                  <p className="truncate text-xs text-slate-400">{[p.position, p.grade && `Grade ${p.grade}`].filter(Boolean).join(' · ') || 'No position or grade'}</p>
                 </div>
               </div>
             ))}

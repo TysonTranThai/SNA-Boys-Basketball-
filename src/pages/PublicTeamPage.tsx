@@ -57,7 +57,7 @@ export default function PublicTeamPage() {
                 </p>
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                   {p.jersey_number != null && <span className="font-bold text-[var(--team-primary)]">#{p.jersey_number} </span>}
-                  {p.position || (p.role === 'captain' ? 'Captain' : 'Player')}
+                  {[p.position, p.grade && `Grade ${p.grade}`].filter(Boolean).join(' · ') || (p.role === 'captain' ? 'Captain' : 'Player')}
                 </p>
               </div>
             </div>
