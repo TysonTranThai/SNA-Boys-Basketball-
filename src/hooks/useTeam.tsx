@@ -63,53 +63,65 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     }
     setLoading(true)
 
-    const fetchProfile = async (): Promise<Profile | null> => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('auth_user_id', user.id)
-        .maybeSingle()
-      if (error) throw error
-      return data
-    }
-
-    let myProfile = await fetchProfile()
-    if (stale()) return
-
-    // A profile is created by DB trigger on signup; wait briefly in case it
-    // hasn't propagated yet.
-    if (!myProfile) {
-      setProfilePending(true)
-      for (let attempt = 0; attempt < 5 && !myProfile; attempt++) {
-        await new Promise((r) => setTimeout(r, 700))
-        if (stale()) {
-          setProfilePending(false)
-          return
-        }
-        myProfile = await fetchProfile()
+    try {
+      const fetchProfile = async (): Promise<Profile | null> => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('auth_user_id', user.id)
+          .maybeSingle()
+        if (error) throw error
+        return data
       }
-      setProfilePending(false)
-    }
 
-    // Only the most recent load may write state — a stale in-flight fetch
-    // (e.g. the pre-join profile with team_id null) must never overwrite the
-    // fresh post-join one.
-    if (stale()) return
-    setProfile(myProfile)
-    if (myProfile?.team_id) {
-      try {
-        const t = await fetchTeam(myProfile.team_id)
-        if (stale()) return
-        setTeam(t)
-        applyTeamColors(t)
-      } catch {
-        if (stale()) return
+      let myProfile = await fetchProfile()
+      if (stale()) return
+
+      // A profile is created by DB trigger on signup; wait briefly in case it
+      // hasn't propagated yet.
+      if (!myProfile) {
+        setProfilePending(true)
+        for (let attempt = 0; attempt < 5 && !myProfile; attempt++) {
+          await new Promise((r) => setTimeout(r, 700))
+          if (stale()) {
+            setProfilePending(false)
+            return
+          }
+          myProfile = await fetchProfile()
+        }
+        setProfilePending(false)
+      }
+
+      // Only the most recent load may write state — a stale in-flight fetch
+      // (e.g. the pre-join profile with team_id null) must never overwrite the
+      // fresh post-join one.
+      if (stale()) return
+      setProfile(myProfile)
+      if (myProfile?.team_id) {
+        try {
+          const t = await fetchTeam(myProfile.team_id)
+          if (stale()) return
+          setTeam(t)
+          applyTeamColors(t)
+        } catch {
+          if (stale()) return
+          setTeam(null)
+        }
+      } else {
         setTeam(null)
       }
-    } else {
-      setTeam(null)
+    } catch {
+      // Supabase free-tier cold starts can cause the profile fetch to throw
+      // (network timeout, DNS, etc.).  Don't leave the portal stuck on the
+      // loading spinner — surface the error by landing with profile=null so
+      // the guards show the login / no-team flow.
+      if (!stale()) {
+        setProfile(null)
+        setTeam(null)
+      }
+    } finally {
+      if (!stale()) setLoading(false)
     }
-    setLoading(false)
   }, [user])
 
   useEffect(() => {
