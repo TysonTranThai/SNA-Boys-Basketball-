@@ -3,18 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 
-// ── Enforce HTTPS ────────────────────────────────────────────────────────
-// Redirect plain HTTP to HTTPS in production (skip localhost / Vite dev).
-if (
-  import.meta.env.PROD &&
-  window.location.protocol === 'http:' &&
-  !window.location.hostname.includes('localhost')
-) {
-  window.location.replace(
-    `https://${window.location.host}${window.location.pathname}${window.location.hash}`,
-  )
-}
-// ──────────────────────────────────────────────────────────────────────────
 import { ThemeProvider } from './hooks/useTheme'
 import { ToastProvider } from './hooks/useToast'
 import { AuthProvider } from './hooks/useAuth'
