@@ -82,26 +82,30 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 
       let myProfile: Profile | null = null
       let lastError: unknown = null
+      let profileRequestSucceeded = false
 
       // Supabase free-tier cold starts and network blips throw transient
       // errors. Retry the fetch itself with backoff instead of giving up on
       // the first attempt (which would bounce the signed-in user into a
       // permanent loading state).
-      for (let attempt = 0; attempt < 5; attempt++) {
+      for (let attempt = 0; attempt < 3; attempt++) {
         try {
           myProfile = await fetchProfile()
+          profileRequestSucceeded = true
           break
         } catch (err) {
           lastError = err
           if (stale()) return
-          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
-          if (stale()) return
+          if (attempt < 2) {
+            await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
+            if (stale()) return
+          }
         }
       }
 
       // A profile is created by DB trigger on signup; wait briefly in case it
       // hasn't propagated yet.
-      if (!myProfile) {
+      if (!myProfile && profileRequestSucceeded) {
         setProfilePending(true)
         for (let attempt = 0; attempt < 5 && !myProfile; attempt++) {
           await new Promise((r) => setTimeout(r, 700))
@@ -111,8 +115,11 @@ export function TeamProvider({ children }: { children: ReactNode }) {
           }
           try {
             myProfile = await fetchProfile()
+            // A failed poll means the server is unavailable, not that the
+            // signup trigger is still pending. Stop promptly and show Retry.
           } catch (err) {
             lastError = err
+            break
           }
         }
         setProfilePending(false)

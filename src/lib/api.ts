@@ -75,6 +75,9 @@ export function friendlyError(error: { message?: string; code?: string } | null,
   if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
     return new AppError('Couldn’t reach the server. Check your connection and try again.', 'NETWORK')
   }
+  if (/timed out|timeout|aborted/i.test(msg)) {
+    return new AppError('The server took too long to respond. Try again in a moment.', 'TIMEOUT')
+  }
   if (msg) return new AppError(msg, code)
   return new AppError(fallback, code)
 }

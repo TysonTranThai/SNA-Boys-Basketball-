@@ -33,6 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(({ data }) => {
         if (active) setSession(data.session)
       })
+      .catch(() => {
+        // A failed session restore should still release the public app. The
+        // user can sign in again instead of seeing an endless boot spinner.
+        if (active) setSession(null)
+      })
       .finally(() => {
         if (active) setInitializing(false)
       })

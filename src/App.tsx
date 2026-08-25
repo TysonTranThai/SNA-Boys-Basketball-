@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import PublicLayout from '@/components/layout/PublicLayout'
@@ -15,15 +15,42 @@ import { Database, ExternalLink, RefreshCw } from 'lucide-react'
 /* ------------------------------ guards -------------------------------- */
 
 function FullScreenLoader() {
+  const [stalled, setStalled] = useState(false)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setStalled(true), 12_000)
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#0b1220]">
-      <div className="w-full max-w-sm space-y-4 p-6">
-        <div className="flex items-center justify-center gap-2">
-          <div className="h-9 w-9 animate-pulse rounded-xl bg-team" />
-          <Skeleton className="h-5 w-28" />
-        </div>
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 dark:bg-[#0b1220]">
+      <div className="w-full max-w-sm space-y-4 text-center">
+        {stalled ? (
+          <>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+              <RefreshCw className="h-6 w-6" />
+            </div>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Still loading</h1>
+            <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              The server is taking longer than expected. Check your connection and try again.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 rounded-xl bg-team px-4 py-2.5 text-sm font-semibold text-team-contrast"
+            >
+              <RefreshCw className="h-4 w-4" /> Try again
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4 p-6">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-9 w-9 animate-pulse rounded-xl bg-team" />
+              <Skeleton className="h-5 w-28" />
+            </div>
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        )}
       </div>
     </div>
   )

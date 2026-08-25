@@ -16,10 +16,40 @@ const url = (() => {
 /** True when the app is running without a configured Supabase project. */
 export const isSupabaseConfigured = Boolean(url && anonKey)
 
+/** Bound every Supabase request so a cold start or broken connection cannot
+    leave an auth/data loading state pending forever. */
+const SUPABASE_REQUEST_TIMEOUT_MS = 10_000
+const fetchWithTimeout: typeof fetch = async (input, init) => {
+  const controller = new AbortController()
+  let timedOut = false
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, SUPABASE_REQUEST_TIMEOUT_MS)
+  const upstreamSignal = init?.signal
+  const abort = () => controller.abort()
+
+  if (upstreamSignal) {
+    if (upstreamSignal.aborted) controller.abort()
+    else upstreamSignal.addEventListener('abort', abort, { once: true })
+  }
+
+  try {
+    return await globalThis.fetch(input, { ...init, signal: controller.signal })
+  } catch (error) {
+    if (timedOut) throw new Error('Supabase request timed out.')
+    throw error
+  } finally {
+    globalThis.clearTimeout(timeoutId)
+    upstreamSignal?.removeEventListener('abort', abort)
+  }
+}
+
 export const supabase: SupabaseClient = createClient(
   url ?? 'https://placeholder.supabase.co',
   anonKey ?? 'placeholder-anon-key',
   {
+    global: { fetch: fetchWithTimeout },
     auth: {
       persistSession: true,
       autoRefreshToken: true,
