@@ -1,6 +1,6 @@
 /* SNA service worker — app shell caching for offline-friendly PWA.
    Data always comes from the network; only static assets are cached. */
-const CACHE = 'teamhq-v3'
+const CACHE = 'teamhq-v4'
 const PRECACHE = ['./', './index.html', './manifest.webmanifest']
 
 self.addEventListener('install', (event) => {
