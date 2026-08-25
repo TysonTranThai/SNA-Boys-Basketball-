@@ -13,6 +13,8 @@ interface TeamContextValue {
   loading: boolean
   /** True while the profile row is being created right after signup. */
   profilePending: boolean
+  /** Set when the profile/team could not be loaded after retries. */
+  error: string | null
   refresh: () => Promise<void>
 }
 
@@ -23,6 +25,7 @@ const TeamContext = createContext<TeamContextValue>({
   isCaptain: false,
   loading: true,
   profilePending: false,
+  error: null,
   refresh: async () => {},
 })
 
@@ -45,6 +48,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   const [team, setTeam] = useState<Team | null>(null)
   const [loading, setLoading] = useState(true)
   const [profilePending, setProfilePending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Guards against stale async loads: when sign-in/join triggers several
   // overlapping profile fetches, only the most recent one may write state.
@@ -58,10 +62,12 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     if (!user) {
       setProfile(null)
       setTeam(null)
+      setError(null)
       setLoading(false)
       return
     }
     setLoading(true)
+    setError(null)
 
     try {
       const fetchProfile = async (): Promise<Profile | null> => {
@@ -74,8 +80,24 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         return data
       }
 
-      let myProfile = await fetchProfile()
-      if (stale()) return
+      let myProfile: Profile | null = null
+      let lastError: unknown = null
+
+      // Supabase free-tier cold starts and network blips throw transient
+      // errors. Retry the fetch itself with backoff instead of giving up on
+      // the first attempt (which would bounce the signed-in user into a
+      // permanent loading state).
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          myProfile = await fetchProfile()
+          break
+        } catch (err) {
+          lastError = err
+          if (stale()) return
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
+          if (stale()) return
+        }
+      }
 
       // A profile is created by DB trigger on signup; wait briefly in case it
       // hasn't propagated yet.
@@ -87,7 +109,11 @@ export function TeamProvider({ children }: { children: ReactNode }) {
             setProfilePending(false)
             return
           }
-          myProfile = await fetchProfile()
+          try {
+            myProfile = await fetchProfile()
+          } catch (err) {
+            lastError = err
+          }
         }
         setProfilePending(false)
       }
@@ -96,27 +122,34 @@ export function TeamProvider({ children }: { children: ReactNode }) {
       // (e.g. the pre-join profile with team_id null) must never overwrite the
       // fresh post-join one.
       if (stale()) return
+
+      if (!myProfile) {
+        // Exhausted all retries. Surface a friendly error instead of leaving
+        // the guards stuck on an infinite loader.
+        setProfile(null)
+        setTeam(null)
+        setError(
+          lastError instanceof Error
+            ? lastError.message
+            : "We couldn't load your profile. Please try again.",
+        )
+        return
+      }
+
       setProfile(myProfile)
-      if (myProfile?.team_id) {
+      setError(null)
+      if (myProfile.team_id) {
         try {
           const t = await fetchTeam(myProfile.team_id)
           if (stale()) return
           setTeam(t)
           applyTeamColors(t)
-        } catch {
+        } catch (err) {
           if (stale()) return
           setTeam(null)
+          setError(err instanceof Error ? err.message : "We couldn't load your team. Please try again.")
         }
       } else {
-        setTeam(null)
-      }
-    } catch {
-      // Supabase free-tier cold starts can cause the profile fetch to throw
-      // (network timeout, DNS, etc.).  Don't leave the portal stuck on the
-      // loading spinner — surface the error by landing with profile=null so
-      // the guards show the login / no-team flow.
-      if (!stale()) {
-        setProfile(null)
         setTeam(null)
       }
     } finally {
@@ -136,9 +169,10 @@ export function TeamProvider({ children }: { children: ReactNode }) {
       isCaptain: profile?.role === 'captain',
       loading,
       profilePending,
+      error,
       refresh: load,
     }),
-    [profile, team, loading, profilePending, load],
+    [profile, team, loading, profilePending, error, load],
   )
 
   return <TeamContext.Provider value={value}>{children}</TeamContext.Provider>

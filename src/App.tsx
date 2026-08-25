@@ -10,7 +10,7 @@ import { isSupabaseConfigured } from '@/lib/supabase'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { missingConfigVar } from '@/lib/supabase'
 import { joinInProgress } from '@/lib/joinState'
-import { Database, ExternalLink } from 'lucide-react'
+import { Database, ExternalLink, RefreshCw } from 'lucide-react'
 
 /* ------------------------------ guards -------------------------------- */
 
@@ -29,10 +29,34 @@ function FullScreenLoader() {
   )
 }
 
+/** Shown when the profile/team fetch fails after retries — never an
+    infinite spinner: the user gets a Retry button instead. */
+function LoadError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 dark:bg-[#0b1220]">
+      <div className="card w-full max-w-md p-8 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+          <RefreshCw className="h-6 w-6" />
+        </div>
+        <h1 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">Couldn't load your account</h1>
+        <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+          {message} If this keeps happening, try again in a moment.
+        </p>
+        <button
+          onClick={onRetry}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-team px-4 py-2.5 text-sm font-semibold text-team-contrast"
+        >
+          <RefreshCw className="h-4 w-4" /> Try again
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /** Requires a signed-in session; redirects to the team entry otherwise. */
 function RequireAuth() {
   const { session, initializing } = useAuth()
-  const { profile } = useTeam()
+  const { profile, loading, profilePending, error, refresh } = useTeam()
   const location = useLocation()
 
   if (initializing) return <FullScreenLoader />
@@ -44,7 +68,18 @@ function RequireAuth() {
   // redirecting back to /login: a signed-in user on the public page makes
   // PublicOnly send them straight back to the portal, and the two guards
   // ping-pong forever, rendering nothing.
-  if (!profile) return <FullScreenLoader />
+  if (!profile) {
+    // Still waiting on retries / the post-signup trigger.
+    if (loading || profilePending) return <FullScreenLoader />
+    // Profile fetch failed after all retries — show a Retry button rather
+    // than leaving the portal stuck on the loader forever.
+    return (
+      <LoadError
+        message={error ?? "We couldn't load your profile. Please try again."}
+        onRetry={() => void refresh()}
+      />
+    )
+  }
 
   return <Outlet />
 }
@@ -53,10 +88,20 @@ function RequireAuth() {
     back-to-code), or to the roster identity picker when a code-first
     player hasn't claimed their name yet. */
 function RequireTeam() {
-  const { profile, loading } = useTeam()
+  const { profile, team, loading, error, refresh } = useTeam()
   const location = useLocation()
   if (loading) return <FullScreenLoader />
   if (!profile?.team_id) return <Navigate to="/portal/no-team" replace />
+  // profile has a team_id but the team row failed to load (cold start /
+  // network). Downstream providers hang when team is null, so show a retry.
+  if (!team) {
+    return (
+      <LoadError
+        message={error ?? "We couldn't load your team. Please try again."}
+        onRetry={() => void refresh()}
+      />
+    )
+  }
   if (
     profile.role === 'player' &&
     !profile.full_name &&

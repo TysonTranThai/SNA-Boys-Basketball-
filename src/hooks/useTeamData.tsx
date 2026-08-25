@@ -76,7 +76,13 @@ export function TeamDataProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(() => setTick((t) => t + 1), [])
 
   useEffect(() => {
-    if (!team) return
+    // Never hang on loading: if there's no team (fetch failed and the
+    // RequireTeam guard didn't catch it), resolve loading so the portal
+    // renders empty data instead of an infinite spinner.
+    if (!team) {
+      setLoading(false)
+      return
+    }
     let cancelled = false
     setLoading(true)
 
